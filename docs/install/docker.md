@@ -251,6 +251,45 @@ If you're having issues with the example configuration above, you can try [beeda
 !!!note
     Don't forget to [download and configure](#docker-compose) your ```.env``` file!
 
+
+#### **Caddy**
+
+If you use Caddy, this configuration is for you.
+
+!!!note "Container Ports"
+    This example exposes Tandoor Recipes localy on port `8080`. This likely needs changed to avoid conflicts. Changing it will **not** affect Caddy, as it looks to a container's "natural" port(s) not the "exposed" ports.
+
+**docker-compose.yml**  
+```shell
+wget https://raw.githubusercontent.com/vabene1111/recipes/develop/docs/install/docker/caddy/docker-compose.yml
+```
+
+~~~yaml
+{% include "./docker/caddy/docker-compose.yml" %}
+~~~
+
+**Caddyfile**  
+This Caddy setup uses the [static file ("Caddyfile")](https://caddyserver.com/docs/caddyfile) to configure it's webserver.
+
+!!!warning "Placeholders"
+    You must replace `YOUR_DOMAIN` and `YOUR_EMAIL` with appropriate values.
+
+!!!warning TLS / SSL Encryption
+    This example does **not** include the necessary steps for SSL given it can vary depending on your setup.
+    You can learn more, to set up this yourself from [caddyserver.com](https://caddyserver.com/docs/caddyfile/directives/tls)
+
+```shell
+wget https://raw.githubusercontent.com/vabene1111/recipes/develop/docs/install/docker/caddy/docker-compose.yml
+```
+
+~~~yaml
+{% include "./docker/caddy/Caddyfile" %}
+~~~
+
+!!!note
+    Don't forget to [download and configure](#docker-compose) your ```.env``` file!
+
+
 #### **Others**
 
 If you use none of the above mentioned reverse proxies or want to use an existing one on your host machine (like a local nginx or Caddy), simply use the [Plain](#plain) setup above and change the outbound port to one of your liking.
