@@ -1,0 +1,76 @@
+{ # Global options block. Entirely optional, https is on by default
+  email <YOUR_EMAIL> # Optional email key for lets encrypt
+  #debug # this is optional; makes Caddy log more details    
+}
+
+############
+# Snippets #
+############
+(headers) {
+	header {
+        -server #anonymizes Caddy
+
+        # disable FLoC tracking
+        Permissions-Policy interest-cohort=()
+
+        #enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+        Content-Security-Policy "upgrade-insecure-requests"
+        header Location http:// https://
+
+        X-Content-Type-Options "nosniff" # disable clients from sniffing the media type
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin; no-referrer-when-downgrade"
+
+        # clickjacking protection
+        ?X-Frame-Options DENY
+
+        header_up X-Real-IP {vars.realip}
+	}
+}
+
+(main) {
+    respond /robots.txt 200 {
+        body "User-agent: *
+        Disallow: /
+        
+        User-agent: AdsBot-Google
+        Disallow: /
+
+        User-agent: AdsBot-Google-Mobile
+        Disallow: /"
+
+        close
+    }
+
+    encode zstd gzip
+}
+
+
+localhost {
+    import main
+
+    handle_path /media/* {
+        root * /www/tandoor
+        file_server
+    }
+
+    reverse_proxy web_recipes:8080
+}
+
+{$DOMAIN} {
+    import headers
+    import main
+
+    handle_path /media/* {
+			root * /www/tandoor
+			file_server
+		}
+
+    reverse_proxy web_recipes:8080
+}
+
+www.{$DOMAIN} {
+    redir {$DOMAIN}{uri}
+}

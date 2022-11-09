@@ -1,0 +1,80 @@
+version: "3"
+services:
+  db_recipes:
+    restart: always
+    image: postgres:11-alpine
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    networks:
+      - default
+    
+    healthcheck:
+      interval: 60s
+      retries: 10
+      test:
+        - CMD
+        - pg_isready
+        - '-q'
+        - '-d'
+        - ${TANDOOR_DB_NAME}
+        - '-U'
+        - ${TANDOOR_DB_USER}
+      timeout: 45s
+
+  web_recipes:
+    restart: always
+    image: vabene1111/recipes
+    env_file:
+      - ./.env
+    volumes:
+      - ./mediafiles:/opt/recipes/mediafiles # recipe image files for Tandoor
+
+    depends_on:
+      db_recipes:
+        condition: service_healthy
+
+    ports:
+      - 8080:8080
+
+    networks:
+      - default
+
+  caddy:
+    image: caddy
+    restart: always
+    env_file:
+      - ./.env
+
+    depends_on:
+      - web_recipes
+    external_links:
+      - web_recipes:web_recipes
+
+    volumes:
+      - ./your/path/to/Caddyfile:/etc/caddy/Caddyfile:ro # Required. Needs to be an extension-less file NOT a directory
+      - caddy-data:/data
+      - caddy-config:/config
+      - ./mediafiles:/www/tandoor:ro # recipe image files for Tandoor
+
+    networks:
+      - default
+      - web
+
+    ports:
+      - 80:80
+      - 443:443
+    
+    healthcheck:
+      test: ["CMD", "caddy", "version"]
+
+networks:
+  default:
+  web:
+    external: true
+    name: web
+
+volumes:
+  caddy-data:
+  caddy-config:
